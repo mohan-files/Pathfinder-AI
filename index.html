@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pathfinder AI - Career Strategist</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -37,67 +38,12 @@
         background: #94a3b8; 
       }
 
-      /* Print Styles for PDF Export */
-      @media print {
-        /* Hide UI elements */
-        nav, button, footer, .no-print {
-          display: none !important;
-        }
-
-        /* Force light theme for document */
-        body, #root, main {
-          background-color: white !important;
-          color: black !important;
-        }
-
-        /* Ensure content width fits page */
-        .max-w-6xl, .max-w-7xl, .container {
-          max-width: 100% !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          width: 100% !important;
-        }
-
-        /* Layout adjustments */
-        .grid {
-          display: block !important;
-        }
-        .lg\:col-span-2 {
-          width: 100% !important;
-        }
-        
-        /* Typography and Colors */
-        h1, h2, h3, h4, h5, p, span, div {
-          color: #000 !important;
-          text-shadow: none !important;
-        }
-        
-        /* Card styling for print */
-        .bg-white, .dark\:bg-slate-800 {
-          border: 1px solid #ddd !important;
-          box-shadow: none !important;
-          break-inside: avoid;
-          margin-bottom: 20px !important;
-        }
-
-        /* Ensure graphics print */
-        * {
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        
-        /* Chart sizing */
-        .recharts-responsive-container {
-          min-height: 300px !important;
-          width: 100% !important;
-        }
-
-        /* Remove animations */
-        .animate-fade-in, .animate-spin {
-          animation: none !important;
-          opacity: 1 !important;
-          transform: none !important;
-        }
+      /* PDF Generation Utilities */
+      .pdf-page-break {
+        page-break-before: always;
+      }
+      .avoid-break {
+        page-break-inside: avoid;
       }
     </style>
   <script type="importmap">
