@@ -27,6 +27,10 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, onReset }) 
 
   const handleExportPDF = async () => {
     setIsExporting(true);
+    
+    // Allow React to re-render with the single-column layout before capturing
+    await new Promise(resolve => setTimeout(resolve, 800));
+
     const element = document.getElementById('report-content');
     const html = document.documentElement;
     const isDark = html.classList.contains('dark');
@@ -37,14 +41,15 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, onReset }) 
     }
 
     const opt = {
-      margin: [10, 10] as [number, number], // Top/Bottom margin
+      margin: [15, 15] as [number, number], 
       filename: 'Pathfinder_Career_Roadmap.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
+      image: { type: 'jpeg' as const, quality: 0.98 },
       html2canvas: { 
         scale: 2, 
         useCORS: true, 
         logging: false,
-        letterRendering: true
+        letterRendering: true,
+        windowWidth: 1200 // Simulate desktop width to ensure consistent sizing
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
@@ -54,7 +59,6 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, onReset }) 
       await html2pdf().set(opt).from(element).save();
     } catch (error) {
       console.error('PDF Export Failed:', error);
-      // Fallback to browser print if library fails
       window.print();
     } finally {
       // Restore theme
@@ -93,7 +97,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, onReset }) 
       </div>
 
       {/* Printable / Exportable Content Area */}
-      <div id="report-content" className="space-y-8 p-1">
+      <div id="report-content" className={`space-y-8 p-1 ${isExporting ? 'max-w-[800px] mx-auto' : ''}`}>
         
         {/* Report Header */}
         <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 transition-colors">
@@ -108,10 +112,15 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, onReset }) 
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        {/* 
+          Layout Logic: 
+          - Normally: Grid with 3 columns (2+1).
+          - Exporting: Stacked single column to avoid overlap and cut-off content in PDF.
+        */}
+        <div className={`grid gap-8 ${isExporting ? 'grid-cols-1' : 'lg:grid-cols-3'}`}>
           
-          {/* Left Column: Roles & Skills (2/3 width) */}
-          <div className="lg:col-span-2 space-y-8">
+          {/* Left Column Section */}
+          <div className={`${isExporting ? 'w-full' : 'lg:col-span-2'} space-y-8`}>
             
             {/* Top Recommendations Chart */}
             <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg shadow-indigo-50/50 dark:shadow-none border border-slate-100 dark:border-slate-700 transition-colors break-inside-avoid">
@@ -121,7 +130,11 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, onReset }) 
               </h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <BarChart 
+                    data={chartData} 
+                    layout="vertical" 
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
                     <XAxis type="number" domain={[0, 100]} hide />
                     <YAxis type="category" dataKey="name" width={120} tick={{fontSize: 12, fill: '#64748b'}} className="text-slate-600 dark:text-slate-400" />
                     <Tooltip 
@@ -130,7 +143,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, onReset }) 
                       itemStyle={{ color: '#f8fafc' }}
                       labelStyle={{ color: '#cbd5e1' }}
                     />
-                    <Bar dataKey="fit" radius={[0, 4, 4, 0]} barSize={20}>
+                    <Bar dataKey="fit" radius={[0, 4, 4, 0]} barSize={20} isAnimationActive={!isExporting}>
                       {chartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fit > 80 ? '#4f46e5' : entry.fit > 50 ? '#818cf8' : '#cbd5e1'} />
                       ))}
@@ -168,7 +181,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, onReset }) 
               </h3>
               <div className="relative border-l-2 border-indigo-100 dark:border-indigo-900 ml-3 space-y-8 pl-8 py-2">
                 {data.learning_roadmap.map((item, idx) => (
-                  <div key={idx} className="relative">
+                  <div key={idx} className="relative break-inside-avoid">
                     <span className="absolute -left-[41px] top-1 h-5 w-5 rounded-full border-4 border-white dark:border-slate-800 bg-indigo-600 dark:bg-indigo-500 shadow-sm"></span>
                     <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 mb-1">
                       <span className="text-xs font-bold tracking-wider text-indigo-600 dark:text-indigo-300 uppercase bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded">
@@ -184,7 +197,7 @@ const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, onReset }) 
 
           </div>
 
-          {/* Right Column: Skills & Projects (1/3 width) */}
+          {/* Right Column Section */}
           <div className="space-y-8">
             
             {/* Skill Gap Analysis */}
