@@ -20,7 +20,15 @@ job roles and a structured upskilling plan.
 `;
 
 export const analyzeCareerPath = async (resumeText: string, interestsText: string): Promise<CareerAnalysis> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // Support both process.env (for this environment) and Vite's import.meta.env (for external deployments)
+  // Casting to any to avoid TypeScript errors if types aren't configured
+  const apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("API Key is missing. Please check your .env file or deployment settings.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey: apiKey });
 
   const responseSchema = {
     type: Type.OBJECT,
